@@ -1,106 +1,178 @@
 <template>
-  <div>
-    <div style="margin: 10px 0">
-      <el-input style="width: 200px" placeholder="请输入名称" suffix-icon="el-icon-search" v-model="name"></el-input>
-<!--      <el-input style="width: 200px" placeholder="请输入" suffix-icon="el-icon-message" class="ml-5" v-model="email"></el-input>-->
-<!--      <el-input style="width: 200px" placeholder="请输入" suffix-icon="el-icon-position" class="ml-5" v-model="address"></el-input>-->
-      <el-button class="ml-5" type="primary" @click="load">搜索</el-button>
-      <el-button type="warning" @click="reset">重置</el-button>
+  <div class="activity-container">
+    <!-- 搜索区域 -->
+    <div class="search-container">
+      <div class="search-box">
+        <el-input 
+          placeholder="请输入活动名称" 
+          prefix-icon="el-icon-search" 
+          v-model="name"
+          clearable>
+        </el-input>
+        
+        <div class="search-buttons">
+          <el-button type="primary" icon="el-icon-search" @click="load">搜索</el-button>
+          <el-button icon="el-icon-refresh" @click="reset">重置</el-button>
+        </div>
+      </div>
     </div>
 
-    <div style="margin: 10px 0">
-      <el-button type="primary" @click="handleAdd">新增 <i class="el-icon-circle-plus-outline"></i></el-button>
+    <!-- 操作按钮区域 -->
+    <div class="action-container">
+      <el-button type="primary" icon="el-icon-plus" @click="handleAdd">新增活动</el-button>
       <el-popconfirm
-          class="ml-5"
-          confirm-button-text='确定'
-          cancel-button-text='我再想想'
-          icon="el-icon-info"
-          icon-color="red"
-          title="您确定批量删除这些数据吗？"
-          @confirm="delBatch"
+        confirm-button-text='确定'
+        cancel-button-text='取消'
+        icon="el-icon-warning"
+        icon-color="red"
+        title="确定批量删除这些数据吗？"
+        @confirm="delBatch"
       >
-        <el-button type="danger" slot="reference">批量删除 <i class="el-icon-remove-outline"></i></el-button>
+        <el-button type="danger" icon="el-icon-delete" slot="reference">批量删除</el-button>
       </el-popconfirm>
-      <!-- <el-upload action="http://localhost:9090/activity/import" :show-file-list="false" accept="xlsx" :on-success="handleExcelImportSuccess" style="display: inline-block">
-        <el-button type="primary" class="ml-5">导入 <i class="el-icon-bottom"></i></el-button>
-      </el-upload>
-      <el-button type="primary" @click="exp" class="ml-5">导出 <i class="el-icon-top"></i></el-button> -->
     </div>
 
-    <el-table :data="tableData" border stripe :header-cell-class-name="'headerBg'"  @selection-change="handleSelectionChange">
-      <el-table-column type="selection" width="55"></el-table-column>
-      <el-table-column prop="id" label="ID" width="80" sortable></el-table-column>
-      <el-table-column prop="name" label="标题"></el-table-column>
-      <el-table-column prop="content" label="内容">
-        <template v-slot="scope">
-          <el-button size="mid" type="primary" @click="view(scope.row.content)">查看</el-button>
-        </template>
-      </el-table-column>
-      <el-table-column prop="time" label="时间"></el-table-column>
-      <el-table-column label="图片"><template slot-scope="scope"><el-image style="width: 100px; height: 100px" :src="scope.row.img" :preview-src-list="[scope.row.img]"></el-image></template></el-table-column>
-      <el-table-column prop="num" label="报名人数"></el-table-column>
-      <el-table-column prop="address" label="地址"></el-table-column>
+    <!-- 表格区域 -->
+    <div class="table-container">
+      <el-table 
+        :data="tableData" 
+        border 
+        stripe 
+        :header-cell-class-name="'table-header'"
+        @selection-change="handleSelectionChange"
+        v-loading="loading">
+        <el-table-column type="selection" width="55"></el-table-column>
+        <el-table-column prop="id" label="ID" width="80" sortable></el-table-column>
+        <el-table-column prop="name" label="标题"></el-table-column>
+        <el-table-column prop="content" label="内容" width="100">
+          <template v-slot="scope">
+            <el-button size="mini" type="primary" icon="el-icon-view" @click="view(scope.row.content)">查看</el-button>
+          </template>
+        </el-table-column>
+        <el-table-column prop="time" label="时间" width="160"></el-table-column>
+        <el-table-column label="图片" width="120">
+          <template slot-scope="scope">
+            <el-image 
+              class="activity-image" 
+              :src="fixImageUrl(scope.row.img)" 
+              :preview-src-list="[fixImageUrl(scope.row.img)]"
+              fit="cover">
+            </el-image>
+          </template>
+        </el-table-column>
+        <el-table-column prop="num" label="报名人数" width="100">
+          <template slot-scope="scope">
+            <el-tag type="success">{{ scope.row.num }} 人</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="address" label="地址" show-overflow-tooltip></el-table-column>
 
-      <el-table-column label="操作"  width="180" align="center">
-        <template slot-scope="scope">
-          <el-button type="success" @click="handleEdit(scope.row)">编辑 <i class="el-icon-edit"></i></el-button>
-          <el-popconfirm
-              class="ml-5"
+        <el-table-column label="操作" width="180" align="center" fixed="right">
+          <template slot-scope="scope">
+            <el-button 
+              type="primary" 
+              icon="el-icon-edit" 
+              size="mini" 
+              @click="handleEdit(scope.row)">
+              编辑
+            </el-button>
+            <el-popconfirm
               confirm-button-text='确定'
-              cancel-button-text='我再想想'
-              icon="el-icon-info"
+              cancel-button-text='取消'
+              icon="el-icon-warning"
               icon-color="red"
-              title="您确定删除吗？"
+              title="确定删除该活动吗？"
               @confirm="del(scope.row.id)"
-          >
-            <el-button type="danger" slot="reference">删除 <i class="el-icon-remove-outline"></i></el-button>
-          </el-popconfirm>
-        </template>
-      </el-table-column>
-    </el-table>
-    <div style="padding: 10px 0">
+            >
+              <el-button 
+                type="danger" 
+                icon="el-icon-delete" 
+                size="mini" 
+                slot="reference">
+                删除
+              </el-button>
+            </el-popconfirm>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+
+    <!-- 分页区域 -->
+    <div class="pagination-container">
       <el-pagination
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-          :current-page="pageNum"
-          :page-sizes="[2, 5, 10, 20]"
-          :page-size="pageSize"
-          layout="total, sizes, prev, pager, next, jumper"
-          :total="total">
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="pageNum"
+        :page-sizes="[10, 20, 50, 100]"
+        :page-size="pageSize"
+        background
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total">
       </el-pagination>
     </div>
 
-    <el-dialog title="信息" :visible.sync="dialogFormVisible" width="60%" :close-on-click-modal="false">
-      <el-form label-width="100px" size="small" style="width: 90%">
-        <el-form-item label="标题">
-          <el-input v-model="form.name" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="封面">
+    <!-- 表单对话框 -->
+    <el-dialog 
+      :title="form.id ? '编辑活动信息' : '新增活动信息'" 
+      :visible.sync="dialogFormVisible" 
+      width="70%" 
+      :close-on-click-modal="false"
+      :destroy-on-close="true">
+      <el-form :model="form" :rules="rules" ref="activityForm" label-width="100px" size="small">
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="标题" prop="name">
+              <el-input v-model="form.name" placeholder="请输入活动标题"></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="时间" prop="time">
+              <el-date-picker 
+                v-model="form.time" 
+                type="datetime" 
+                value-format="yyyy-MM-dd HH:mm:ss" 
+                placeholder="选择活动时间">
+              </el-date-picker>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="报名人数" prop="num">
+              <el-input-number v-model="form.num" :min="0" :max="1000" placeholder="请输入报名人数"></el-input-number>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="地址" prop="address">
+              <el-input v-model="form.address" placeholder="请输入活动地址"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        
+        <el-form-item label="封面" prop="img">
           <el-upload
-              class="avatar-uploader"
-              :action="'http://localhost:9090/file/upload'"
-              :show-file-list="false"
-              :on-success="handleImgUploadSuccess"
+            class="avatar-uploader"
+            :action="request.defaults.baseURL + '/file/upload'"
+            :show-file-list="false"
+            :on-success="handleImgUploadSuccess"
+            :before-upload="beforeAvatarUpload"
           >
-            <img v-if="form.img" :src="form.img" class="avatar">
+            <img v-if="form.img" :src="fixImageUrl(form.img)" class="avatar">
             <i v-else class="el-icon-plus avatar-uploader-icon"></i>
           </el-upload>
+          <div class="upload-tip">建议上传 16:9 比例的图片，大小不超过2MB</div>
         </el-form-item>
-        <el-form-item label="时间">
-          <el-date-picker v-model="form.time" type="datetime" value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择日期时间"></el-date-picker>
+        
+        <el-form-item label="内容" prop="content">
+          <mavon-editor 
+            ref="md" 
+            v-model="form.content" 
+            :ishljs="true" 
+            @imgAdd="imgAdd"
+            style="min-height: 400px"
+          />
         </el-form-item>
-        <el-form-item label="报名人数">
-          <el-input v-model="form.num" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="地址">
-          <el-input v-model="form.address" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="内容">
-          <mavon-editor ref="md" v-model="form.content" :ishljs="true" @imgAdd="imgAdd"/>
-        </el-form-item>
-
-
-
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取 消</el-button>
@@ -108,24 +180,15 @@
       </div>
     </el-dialog>
 
-
-    <el-dialog title="信息" :visible.sync="vis" width="60%" :close-on-click-modal="false">
-      <mavon-editor
-          class="md"
-          :value="content"
-          :subfield="false"
-          :defaultOpen="'preview'"
-          :toolbarsFlag="false"
-          :editable="false"
-          :scrollStyle="true"
-          :ishljs="true"
-      />
+    <!-- 内容查看对话框 -->
+    <el-dialog title="活动内容详情" :visible.sync="contentVisible" width="70%">
+      <div v-html="contentHtml" class="content-preview"></div>
     </el-dialog>
   </div>
 </template>
 
 <script>
-import axios from "axios";
+import { fixImageUrl } from '@/utils/request'
 
 export default {
   name: "Activity",
@@ -138,37 +201,38 @@ export default {
       name: "",
       form: {},
       dialogFormVisible: false,
+      contentVisible: false,
+      contentHtml: '',
       multipleSelection: [],
-      user: localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : {},
-      vis: false,
-      content: ''
+      loading: false,
+      rules: {
+        name: [
+          { required: true, message: '请输入活动标题', trigger: 'blur' },
+          { min: 2, max: 50, message: '长度在 2 到 50 个字符' },
+        ],
+        time: [
+          { required: true, message: '请选择活动时间', trigger: 'change' },
+        ],
+        num: [
+          { required: true, message: '请输入报名人数', trigger: 'blur' },
+          { type: 'number', message: '报名人数必须为数字' },
+        ],
+        address: [
+          { required: true, message: '请输入活动地址', trigger: 'blur' },
+          { min: 5, max: 100, message: '长度在 5 到 100 个字符' },
+        ],
+        content: [
+          { required: true, message: '请输入活动内容', trigger: 'blur' },
+        ],
+      }
     }
   },
   created() {
     this.load()
   },
   methods: {
-    view(content) {
-      this.content = content
-      this.vis = true
-    },
-    // 绑定@imgAdd event
-    imgAdd(pos, $file) {
-      let $vm = this.$refs.md
-      // 第一步.将图片上传到服务器.
-      const formData = new FormData();
-      formData.append('file', $file);
-      axios({
-        url: 'http://localhost:9090/file/upload',
-        method: 'post',
-        data: formData,
-        headers: {'Content-Type': 'multipart/form-data'},
-      }).then((res) => {
-        // 第二步.将返回的url替换到文本原位置![...](./0) -> ![...](url)
-        $vm.$img2Url(pos, res.data);
-      })
-    },
     load() {
+      this.loading = true
       this.request.get("/activity/page", {
         params: {
           pageNum: this.pageNum,
@@ -178,42 +242,36 @@ export default {
       }).then(res => {
         this.tableData = res.data.records
         this.total = res.data.total
+        this.loading = false
       })
     },
     save() {
-      this.request.post("/activity", this.form).then(res => {
-        if (res.code === '200') {
-          this.$message.success("保存成功")
-          this.dialogFormVisible = false
-          this.load()
+      this.$refs.activityForm.validate((valid) => {
+        if (valid) {
+          this.request.post("/activity", this.form).then(res => {
+            if (res.code === '200') {
+              this.$message.success("保存成功")
+              this.dialogFormVisible = false
+              this.load()
+            } else {
+              this.$message.error("保存失败")
+            }
+          })
         } else {
-          this.$message.error("保存失败")
+          this.$message.error("请填写完整表单")
         }
       })
     },
     handleAdd() {
       this.dialogFormVisible = true
-      this.form = {}
-      this.$nextTick(() => {
-        if(this.$refs.img) {
-           this.$refs.img.clearFiles();
-         }
-         if(this.$refs.file) {
-          this.$refs.file.clearFiles();
-         }
-      })
+      this.form = {
+        time: new Date().toISOString().slice(0, 19).replace('T', ' '),
+        num: 0
+      }
     },
     handleEdit(row) {
       this.form = JSON.parse(JSON.stringify(row))
       this.dialogFormVisible = true
-       this.$nextTick(() => {
-         if(this.$refs.img) {
-           this.$refs.img.clearFiles();
-         }
-         if(this.$refs.file) {
-          this.$refs.file.clearFiles();
-         }
-       })
     },
     del(id) {
       this.request.delete("/activity/" + id).then(res => {
@@ -226,15 +284,15 @@ export default {
       })
     },
     handleSelectionChange(val) {
-      console.log(val)
       this.multipleSelection = val
     },
     delBatch() {
       if (!this.multipleSelection.length) {
-        this.$message.error("请选择需要删除的数据")
+        this.$message.warning("请选择需要删除的数据")
         return
       }
-      let ids = this.multipleSelection.map(v => v.id)  // [{}, {}, {}] => [1,2,3]
+      
+      let ids = this.multipleSelection.map(v => v.id)
       this.request.post("/activity/del/batch", ids).then(res => {
         if (res.code === '200') {
           this.$message.success("批量删除成功")
@@ -249,65 +307,183 @@ export default {
       this.load()
     },
     handleSizeChange(pageSize) {
-      console.log(pageSize)
       this.pageSize = pageSize
       this.load()
     },
     handleCurrentChange(pageNum) {
-      console.log(pageNum)
       this.pageNum = pageNum
       this.load()
-    },
-    handleFileUploadSuccess(res) {
-      this.form.file = res
     },
     handleImgUploadSuccess(res) {
       this.form.img = res
     },
-    download(url) {
-      window.open(url)
+    view(content) {
+      this.contentHtml = marked(content)
+      this.contentVisible = true
     },
-    exp() {
-      window.open("http://localhost:9090/activity/export")
+    imgAdd(pos, $file) {
+      // 第一步：将图片上传到服务器
+      var formdata = new FormData()
+      formdata.append('file', $file)
+      this.request.post('/file/upload', formdata, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      }).then(res => {
+        // 第二步：将返回的url替换到文本原位置
+        this.$refs.md.$img2Url(pos, fixImageUrl(res))
+      })
     },
-    handleExcelImportSuccess() {
-      this.$message.success("导入成功")
-      this.load()
-    }
+    beforeAvatarUpload(file) {
+      const isJPG = file.type === 'image/jpeg'
+      const isPNG = file.type === 'image/png'
+      const isLt2M = file.size / 1024 / 1024 < 2
+
+      if (!isJPG && !isPNG) {
+        this.$message.error('上传图片只能是 JPG 或 PNG 格式!')
+      }
+      if (!isLt2M) {
+        this.$message.error('上传图片大小不能超过 2MB!')
+      }
+      return (isJPG || isPNG) && isLt2M
+    },
+    fixImageUrl
   }
 }
 </script>
 
-
 <style>
-.headerBg {
-  background: #eee!important;
+.activity-container {
+  padding: 20px;
+  background-color: #f5f7fa;
+  min-height: calc(100vh - 50px);
 }
+
+.search-container {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.search-box .el-input {
+  width: 220px;
+}
+
+.search-buttons {
+  margin-left: auto;
+  display: flex;
+  gap: 10px;
+}
+
+.action-container {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+.table-container {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+}
+
+.table-header {
+  background-color: #f0f2f5 !important;
+  color: #303133;
+  font-weight: bold;
+}
+
+.activity-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
 .avatar-uploader {
-  padding-left: 20px;
-  padding-bottom: 10px;
-}
-.avatar-uploader .el-upload {
   border: 1px dashed #d9d9d9;
   border-radius: 6px;
   cursor: pointer;
   position: relative;
   overflow: hidden;
+  width: 178px;
+  height: 178px;
 }
-.avatar-uploader .el-upload:hover {
+
+.avatar-uploader:hover {
   border-color: #409EFF;
 }
+
 .avatar-uploader-icon {
   font-size: 28px;
   color: #8c939d;
-  width: 138px;
-  height: 138px;
-  line-height: 138px;
+  width: 178px;
+  height: 178px;
+  line-height: 178px;
   text-align: center;
 }
+
 .avatar {
-  width: 138px;
-  height: 138px;
+  width: 178px;
+  height: 178px;
   display: block;
+  object-fit: cover;
+}
+
+.upload-tip {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 5px;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.content-preview {
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.content-preview img {
+  max-width: 100%;
+  height: auto;
+}
+
+@media (max-width: 768px) {
+  .search-box {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .search-box .el-input {
+    width: 100%;
+  }
+  
+  .search-buttons {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-end;
+  }
 }
 </style>

@@ -1,7 +1,7 @@
 <template>
   <div style="min-height: calc(100vh - 60px); margin: 10px 0">
     <div style="display: flex">
-      <div style="width: 300px"><img style="width: 100%; border-radius: 10px" :src="animal.img" alt=""></div>
+      <div style="width: 300px"><img :src="fixImageUrl(animal.img)" alt="" style="width: 100%; border-radius: 10px"></div>
 
       <div style="padding-left: 30px; width: 500px">
         <el-card>
@@ -107,6 +107,8 @@
 </template>
 
 <script>
+import { fixImageUrl } from '@/utils/request'
+
 export default {
   name: "HomeDetail",
   data() {
@@ -125,6 +127,7 @@ export default {
     this.loadComment()
   },
   methods: {
+    fixImageUrl,
     praiseClick() {
       if(this.praise) {
         return

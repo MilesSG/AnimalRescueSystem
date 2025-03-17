@@ -50,11 +50,11 @@
         <el-form-item label="封面">
           <el-upload
               class="avatar-uploader"
-              :action="'http://localhost:9090/file/upload'"
+              :action="request.defaults.baseURL + '/file/upload'"
               :show-file-list="false"
               :on-success="handleImgUploadSuccess"
           >
-            <img v-if="form.img" :src="form.img" class="avatar">
+            <img v-if="form.img" :src="fixImageUrl(form.img)" class="avatar">
             <i v-else class="el-icon-plus avatar-uploader-icon"></i>
           </el-upload>
         </el-form-item>
@@ -98,6 +98,7 @@
 
 <script>
 import axios from "axios";
+import { fixImageUrl } from '@/utils/request'
 
 export default {
   name: "Activity",
@@ -120,6 +121,7 @@ export default {
     this.load()
   },
   methods: {
+    fixImageUrl,
     view(content) {
       this.content = content
       this.vis = true
@@ -131,13 +133,13 @@ export default {
       const formData = new FormData();
       formData.append('file', $file);
       axios({
-        url: 'http://localhost:9090/file/upload',
+        url: this.request.defaults.baseURL + '/file/upload',
         method: 'post',
         data: formData,
         headers: {'Content-Type': 'multipart/form-data'},
       }).then((res) => {
         // 第二步.将返回的url替换到文本原位置![...](./0) -> ![...](url)
-        $vm.$img2Url(pos, res.data);
+        $vm.$img2Url(pos, this.fixImageUrl(res.data));
       })
     },
     load() {

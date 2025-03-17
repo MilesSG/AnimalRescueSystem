@@ -31,7 +31,7 @@
       <el-table-column type="selection" width="55"></el-table-column>
       <el-table-column prop="id" label="ID" width="80" sortable></el-table-column>
       <el-table-column prop="information" label="情况描述"></el-table-column>
-      <el-table-column label="图片"><template slot-scope="scope"><el-image style="width: 100px; height: 100px" :src="scope.row.img" :preview-src-list="[scope.row.img]"></el-image></template></el-table-column>
+      <el-table-column label="图片"><template slot-scope="scope"><el-image style="width: 100px; height: 100px" :src="fixImageUrl(scope.row.img)" :preview-src-list="[fixImageUrl(scope.row.img)]"></el-image></template></el-table-column>
       <el-table-column prop="address" label="地点"></el-table-column>
       <el-table-column prop="time" label="发现时间"></el-table-column>
       <el-table-column prop="person" label="联系人"></el-table-column>

@@ -193,13 +193,13 @@ export default {
       const formData = new FormData();
       formData.append('file', $file);
       axios({
-        url: 'http://localhost:9090/file/upload',
+        url: request.defaults.baseURL + '/file/upload',
         method: 'post',
         data: formData,
         headers: {'Content-Type': 'multipart/form-data'},
       }).then((res) => {
         // 第二步.将返回的url替换到文本原位置![...](./0) -> ![...](url)
-        $vm.$img2Url(pos, res.data);
+        $vm.$img2Url(pos, fixImageUrl(res.data));
       })
     },
     load() {

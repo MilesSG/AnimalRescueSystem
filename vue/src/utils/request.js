@@ -1,8 +1,16 @@
 import axios from 'axios'
 import router from "@/router";
+import { API_URL, FILE_URL } from '@/config'
+
+// 全局图片URL转换函数
+export function fixImageUrl(url) {
+  if (!url) return '';
+  // 替换任何端口的localhost URL为当前配置的文件服务器URL
+  return url.replace(/http:\/\/localhost:\d+\/file\//g, FILE_URL);
+}
 
 const request = axios.create({
-    baseURL: 'http://localhost:9090',
+    baseURL: API_URL,
     timeout: 5000
 })
 

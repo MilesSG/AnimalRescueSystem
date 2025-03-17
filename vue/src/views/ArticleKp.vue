@@ -37,7 +37,7 @@
         </template>
       </el-table-column>
       <el-table-column prop="time" label="时间"></el-table-column>
-      <el-table-column label="图片"><template slot-scope="scope"><el-image style="width: 100px; height: 100px" :src="scope.row.img" :preview-src-list="[scope.row.img]"></el-image></template></el-table-column>
+      <el-table-column label="图片"><template slot-scope="scope"><el-image style="width: 100px; height: 100px" :src="fixImageUrl(scope.row.img)" :preview-src-list="[fixImageUrl(scope.row.img)]"></el-image></template></el-table-column>
       <el-table-column prop="read1" label="阅读数"></el-table-column>
 
       <el-table-column label="操作"  width="180" align="center">
@@ -77,11 +77,11 @@
         <el-form-item label="封面">
           <el-upload
               class="avatar-uploader"
-              :action="'http://localhost:9090/file/upload'"
+              :action="request.defaults.baseURL + '/file/upload'"
               :show-file-list="false"
               :on-success="handleImgUploadSuccess"
           >
-            <img v-if="form.img" :src="form.img" class="avatar">
+            <img v-if="form.img" :src="fixImageUrl(form.img)" class="avatar">
             <i v-else class="el-icon-plus avatar-uploader-icon"></i>
           </el-upload>
         </el-form-item>
@@ -113,6 +113,7 @@
 
 <script>
 import axios from "axios";
+import { fixImageUrl } from '@/utils/request'
 
 export default {
   name: "ArticleKp",
@@ -135,6 +136,7 @@ export default {
     this.load()
   },
   methods: {
+    fixImageUrl,
     view(content) {
       this.content = content
       this.vis = true
@@ -146,13 +148,13 @@ export default {
       const formData = new FormData();
       formData.append('file', $file);
       axios({
-        url: 'http://localhost:9090/file/upload',
+        url: this.request.defaults.baseURL + '/file/upload',
         method: 'post',
         data: formData,
         headers: {'Content-Type': 'multipart/form-data'},
       }).then((res) => {
         // 第二步.将返回的url替换到文本原位置![...](./0) -> ![...](url)
-        $vm.$img2Url(pos, res.data);
+        $vm.$img2Url(pos, this.fixImageUrl(res.data));
       })
     },
     load() {

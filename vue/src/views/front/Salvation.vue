@@ -30,7 +30,7 @@
     <el-table :data="tableData"  stripe  :show-header="false" size="mid" style="border-radius: 10px">
 <!--      <el-table-column type="selection" width="55"></el-table-column>-->
 <!--      <el-table-column prop="id" label="ID" width="80" sortable></el-table-column>-->
-      <el-table-column label="图片" width="150"><template slot-scope="scope"><el-image style="width: 100px; height: 100px" :src="scope.row.img" :preview-src-list="[scope.row.img]"></el-image></template></el-table-column>
+      <el-table-column label="图片"><template slot-scope="scope"><el-image style="width: 100px; height: 100px" :src="fixImageUrl(scope.row.img)" :preview-src-list="[fixImageUrl(scope.row.img)]"></el-image></template></el-table-column>
       <el-table-column prop="information" label="情况描述"></el-table-column>
       <el-table-column prop="address" label="地点"></el-table-column>
       <el-table-column prop="time" label="发现时间"></el-table-column>
@@ -73,9 +73,9 @@
         <el-form-item label="情况描述" size="mid">
           <el-input v-model="form.information" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="现场照片">
-          <el-upload action="http://localhost:9090/file/upload" ref="img" :on-success="handleImgUploadSuccess">
-            <el-button size="mid" type="primary" >点击上传</el-button>
+        <el-form-item label="图片">
+          <el-upload :action="request.defaults.baseURL + '/file/upload'" ref="img" :on-success="handleImgUploadSuccess">
+            <el-button size="mid" type="primary">点击上传</el-button>
           </el-upload>
         </el-form-item>
         <el-form-item label="地点">
@@ -106,6 +106,8 @@
 </template>
 
 <script>
+import { fixImageUrl } from '@/utils/request'
+
 export default {
   name: "Salvation",
   data() {
@@ -125,6 +127,7 @@ export default {
     this.load()
   },
   methods: {
+    fixImageUrl,
     load() {
       this.request.get("/salvation/page", {
         params: {

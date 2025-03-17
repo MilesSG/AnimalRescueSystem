@@ -1,9 +1,9 @@
 <template>
   <div style="min-height: calc(100vh - 60px); margin: 10px 0">
     <el-table :data="tableData" stripe style="border-radius: 10px">
-      <el-table-column label="环境照片1"><template slot-scope="scope"><el-image style="width: 100px; height: 100px" :src="scope.row.img" :preview-src-list="[scope.row.img]"></el-image></template></el-table-column>
-      <el-table-column label="环境照片2"><template slot-scope="scope"><el-image style="width: 100px; height: 100px" :src="scope.row.img2" :preview-src-list="[scope.row.img2]"></el-image></template></el-table-column>
-      <el-table-column label="环境照片3"><template slot-scope="scope"><el-image style="width: 100px; height: 100px" :src="scope.row.img3" :preview-src-list="[scope.row.img3]"></el-image></template></el-table-column>
+      <el-table-column label="环境照片1"><template slot-scope="scope"><el-image style="width: 100px; height: 100px" :src="fixImageUrl(scope.row.img)" :preview-src-list="[fixImageUrl(scope.row.img)]"></el-image></template></el-table-column>
+      <el-table-column label="环境照片2"><template slot-scope="scope"><el-image style="width: 100px; height: 100px" :src="fixImageUrl(scope.row.img2)" :preview-src-list="[fixImageUrl(scope.row.img2)]"></el-image></template></el-table-column>
+      <el-table-column label="环境照片3"><template slot-scope="scope"><el-image style="width: 100px; height: 100px" :src="fixImageUrl(scope.row.img3)" :preview-src-list="[fixImageUrl(scope.row.img3)]"></el-image></template></el-table-column>
       <el-table-column prop="address" label="地址"></el-table-column>
       <el-table-column prop="information" label="相关描述"></el-table-column>
 
@@ -23,17 +23,17 @@
     <el-dialog title="信息" :visible.sync="dialogFormVisible" width="30%" :close-on-click-modal="false">
       <el-form label-width="100px" size="small" style="width: 90%">
         <el-form-item label="环境照片1">
-          <el-upload action="http://localhost:9090/file/upload" ref="img" :on-success="handleImgUploadSuccess">
+          <el-upload :action="request.defaults.baseURL + '/file/upload'" ref="img" :on-success="handleImgUploadSuccess">
             <el-button size="small" type="primary">点击上传</el-button>
           </el-upload>
         </el-form-item>
         <el-form-item label="环境照片2">
-          <el-upload action="http://localhost:9090/file/upload" ref="img" :on-success="handleImgUploadSuccess2">
+          <el-upload :action="request.defaults.baseURL + '/file/upload'" ref="img" :on-success="handleImgUploadSuccess2">
             <el-button size="small" type="primary">点击上传</el-button>
           </el-upload>
         </el-form-item>
         <el-form-item label="环境照片3">
-          <el-upload action="http://localhost:9090/file/upload" ref="img" :on-success="handleImgUploadSuccess3">
+          <el-upload :action="request.defaults.baseURL + '/file/upload'" ref="img" :on-success="handleImgUploadSuccess3">
             <el-button size="small" type="primary">点击上传</el-button>
           </el-upload>
         </el-form-item>
@@ -54,6 +54,8 @@
 </template>
 
 <script>
+import { fixImageUrl } from '@/utils/request'
+
 export default {
   name: "Feed",
   data() {
@@ -73,6 +75,7 @@ export default {
     this.load()
   },
   methods: {
+    fixImageUrl,
     load() {
       this.request.get("/feed/page", {
         params: {

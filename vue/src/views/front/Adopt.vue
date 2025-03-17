@@ -7,7 +7,7 @@
     <div style="margin: 10px 0">
       <el-card  v-for="item in tableData" :key="item.id" style="margin: 10px 0">
         <div style="display: flex">
-          <div style="width: 140px" @click="$router.push('/front/homeDetail?id=' + item.id)"> <img :src="item.img" alt="" style="width: 100%; height: 160px; border-radius: 10px"></div>
+          <div style="width: 140px" @click="$router.push('/front/homeDetail?id=' + item.id)"> <img :src="fixImageUrl(item.img)" alt="" style="width: 100%; height: 160px; border-radius: 10px"></div>
           <div style="padding-left: 50px; flex: 1">
             <div style="border-bottom: 1px solid #ddd; width: 100%; padding-bottom: 10px">
               <span style="font-size: 24px">{{ item.nickname }}</span>
@@ -93,6 +93,8 @@
 </template>
 
 <script>
+import { fixImageUrl } from '@/utils/request'
+
 export default {
   name: "FrontHome",
   data() {
@@ -111,6 +113,7 @@ export default {
     this.load()
   },
   methods: {
+    fixImageUrl,
     save() {
       this.form.userId = this.user.id
       this.request.post("/applcation", this.form).then(res => {

@@ -1,50 +1,89 @@
 <template>
-  <div style="min-height: calc(100vh - 60px); margin: 10px 0">
-
-    <el-table :data="tableData" stripe size="mid" style="border-radius: 10px">
-      <el-table-column label="图片"><template slot-scope="scope"><el-image style="width: 100px; height: 100px" :src="scope.row.img" :preview-src-list="[scope.row.img]"></el-image></template></el-table-column>
-      <el-table-column prop="name" label="名称"></el-table-column>
-      <el-table-column prop="addres" label="地址"></el-table-column>
-      <el-table-column prop="person" label="联系人"></el-table-column>
-      <el-table-column prop="phone" label="联系方式"></el-table-column>
-      <el-table-column prop="information" label="相关描述"></el-table-column>
-
-    </el-table>
-    <div  style="padding: 10px; margin: 10px 0; background-color: #fff; border-radius: 10px">
-      <el-pagination
+  <div class="rescue-container">
+    <!-- 救助站列表 -->
+    <div class="rescue-list-container">
+      <div class="section-header">
+        <i class="el-icon-first-aid-kit"></i>
+        <span>救助站信息</span>
+        <div class="section-divider"></div>
+      </div>
+      
+      <el-table 
+        :data="tableData" 
+        stripe 
+        class="rescue-table"
+        v-loading="loading">
+        <el-table-column label="图片" width="120">
+          <template slot-scope="scope">
+            <el-image 
+              class="rescue-image" 
+              :src="fixImageUrl(scope.row.img)" 
+              :preview-src-list="[fixImageUrl(scope.row.img)]"
+              fit="cover">
+            </el-image>
+          </template>
+        </el-table-column>
+        <el-table-column prop="name" label="名称">
+          <template slot-scope="scope">
+            <div class="rescue-name">{{ scope.row.name }}</div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="addres" label="地址" show-overflow-tooltip></el-table-column>
+        <el-table-column prop="person" label="联系人" width="100"></el-table-column>
+        <el-table-column prop="phone" label="联系方式" width="120"></el-table-column>
+        <el-table-column prop="information" label="相关描述" show-overflow-tooltip></el-table-column>
+      </el-table>
+      
+      <!-- 分页 -->
+      <div class="pagination-container">
+        <el-pagination
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
           :current-page="pageNum"
-          :page-sizes="[2, 5, 10, 20]"
+          :page-sizes="[5, 10, 20, 50]"
           :page-size="pageSize"
+          background
           layout="total, sizes, prev, pager, next, jumper"
           :total="total">
-      </el-pagination>
+        </el-pagination>
+      </div>
     </div>
 
-    <el-dialog title="信息" :visible.sync="dialogFormVisible" width="30%" :close-on-click-modal="false">
-      <el-form label-width="100px" size="small" style="width: 90%">
-        <el-form-item label="名称">
-          <el-input v-model="form.name" autocomplete="off"></el-input>
+    <!-- 表单对话框 -->
+    <el-dialog 
+      title="救助站信息" 
+      :visible.sync="dialogFormVisible" 
+      width="40%" 
+      :close-on-click-modal="false"
+      :destroy-on-close="true">
+      <el-form :model="form" :rules="rules" ref="rescueForm" label-width="100px" size="small">
+        <el-form-item label="名称" prop="name">
+          <el-input v-model="form.name" placeholder="请输入救助站名称"></el-input>
         </el-form-item>
-        <el-form-item label="地址">
-          <el-input v-model="form.addres" autocomplete="off"></el-input>
+        <el-form-item label="地址" prop="addres">
+          <el-input v-model="form.addres" placeholder="请输入地址"></el-input>
         </el-form-item>
-        <el-form-item label="照片">
-          <el-upload action="http://localhost:9090/file/upload" ref="img" :on-success="handleImgUploadSuccess">
-            <el-button size="small" type="primary">点击上传</el-button>
+        <el-form-item label="图片" prop="img">
+          <el-upload 
+            class="avatar-uploader"
+            :action="request.defaults.baseURL + '/file/upload'" 
+            :show-file-list="false"
+            :on-success="handleImgUploadSuccess"
+            :before-upload="beforeAvatarUpload">
+            <img v-if="form.img" :src="fixImageUrl(form.img)" class="avatar">
+            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
           </el-upload>
+          <div class="upload-tip">建议上传正方形图片，大小不超过2MB</div>
         </el-form-item>
-        <el-form-item label="联系人">
-          <el-input v-model="form.person" autocomplete="off"></el-input>
+        <el-form-item label="联系人" prop="person">
+          <el-input v-model="form.person" placeholder="请输入联系人"></el-input>
         </el-form-item>
-        <el-form-item label="联系方式">
-          <el-input v-model="form.phone" autocomplete="off"></el-input>
+        <el-form-item label="联系方式" prop="phone">
+          <el-input v-model="form.phone" placeholder="请输入联系方式"></el-input>
         </el-form-item>
-        <el-form-item label="相关描述">
-          <el-input v-model="form.information" autocomplete="off"></el-input>
+        <el-form-item label="相关描述" prop="information">
+          <el-input type="textarea" v-model="form.information" :rows="3" placeholder="请输入相关描述"></el-input>
         </el-form-item>
-
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取 消</el-button>
@@ -55,6 +94,8 @@
 </template>
 
 <script>
+import { fixImageUrl } from '@/utils/request'
+
 export default {
   name: "Rescue",
   data() {
@@ -67,14 +108,32 @@ export default {
       form: {},
       dialogFormVisible: false,
       multipleSelection: [],
-      user: localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : {}
+      loading: false,
+      rules: {
+        name: [
+          { required: true, message: '请输入救助站名称', trigger: 'blur' },
+          { min: 2, max: 50, message: '长度在 2 到 50 个字符' },
+        ],
+        addres: [
+          { required: true, message: '请输入地址', trigger: 'blur' },
+          { min: 5, max: 100, message: '长度在 5 到 100 个字符' },
+        ],
+        person: [
+          { required: true, message: '请输入联系人', trigger: 'blur' },
+        ],
+        phone: [
+          { required: true, message: '请输入联系方式', trigger: 'blur' },
+        ],
+      }
     }
   },
   created() {
     this.load()
   },
   methods: {
+    fixImageUrl,
     load() {
+      this.loading = true
       this.request.get("/rescue/page", {
         params: {
           pageNum: this.pageNum,
@@ -84,109 +143,165 @@ export default {
       }).then(res => {
         this.tableData = res.data.records
         this.total = res.data.total
+        this.loading = false
       })
     },
     save() {
-      this.request.post("/rescue", this.form).then(res => {
-        if (res.code === '200') {
-          this.$message.success("保存成功")
-          this.dialogFormVisible = false
-          this.load()
+      this.$refs.rescueForm.validate((valid) => {
+        if (valid) {
+          this.request.post("/rescue", this.form).then(res => {
+            if (res.code === '200') {
+              this.$message.success("保存成功")
+              this.dialogFormVisible = false
+              this.load()
+            } else {
+              this.$message.error("保存失败")
+            }
+          })
         } else {
-          this.$message.error("保存失败")
+          this.$message.error("请填写完整表单")
         }
       })
-    },
-    handleAdd() {
-      this.dialogFormVisible = true
-      this.form = {}
-      this.$nextTick(() => {
-        if(this.$refs.img) {
-           this.$refs.img.clearFiles();
-         }
-         if(this.$refs.file) {
-          this.$refs.file.clearFiles();
-         }
-      })
-    },
-    handleEdit(row) {
-      this.form = JSON.parse(JSON.stringify(row))
-      this.dialogFormVisible = true
-       this.$nextTick(() => {
-         if(this.$refs.img) {
-           this.$refs.img.clearFiles();
-         }
-         if(this.$refs.file) {
-          this.$refs.file.clearFiles();
-         }
-       })
-    },
-    del(id) {
-      this.request.delete("/rescue/" + id).then(res => {
-        if (res.code === '200') {
-          this.$message.success("删除成功")
-          this.load()
-        } else {
-          this.$message.error("删除失败")
-        }
-      })
-    },
-    handleSelectionChange(val) {
-      console.log(val)
-      this.multipleSelection = val
-    },
-    delBatch() {
-      if (!this.multipleSelection.length) {
-        this.$message.error("请选择需要删除的数据")
-        return
-      }
-      let ids = this.multipleSelection.map(v => v.id)  // [{}, {}, {}] => [1,2,3]
-      this.request.post("/rescue/del/batch", ids).then(res => {
-        if (res.code === '200') {
-          this.$message.success("批量删除成功")
-          this.load()
-        } else {
-          this.$message.error("批量删除失败")
-        }
-      })
-    },
-    reset() {
-      this.name = ""
-      this.load()
     },
     handleSizeChange(pageSize) {
-      console.log(pageSize)
       this.pageSize = pageSize
       this.load()
     },
     handleCurrentChange(pageNum) {
-      console.log(pageNum)
       this.pageNum = pageNum
       this.load()
-    },
-    handleFileUploadSuccess(res) {
-      this.form.file = res
     },
     handleImgUploadSuccess(res) {
       this.form.img = res
     },
-    download(url) {
-      window.open(url)
+    beforeAvatarUpload(file) {
+      const isJPG = file.type === 'image/jpeg'
+      const isPNG = file.type === 'image/png'
+      const isLt2M = file.size / 1024 / 1024 < 2
+
+      if (!isJPG && !isPNG) {
+        this.$message.error('上传图片只能是 JPG 或 PNG 格式!')
+      }
+      if (!isLt2M) {
+        this.$message.error('上传图片大小不超过 2MB!')
+      }
+      return (isJPG || isPNG) && isLt2M
     },
-    exp() {
-      window.open("http://localhost:9090/rescue/export")
-    },
-    handleExcelImportSuccess() {
-      this.$message.success("导入成功")
-      this.load()
+    handleSelectionChange(val) {
+      this.multipleSelection = val
     }
   }
 }
 </script>
 
+<style scoped>
+.rescue-container {
+  min-height: calc(100vh - 60px);
+  padding: 20px;
+  background-color: #f5f7fa;
+}
 
-<style>
-.headerBg {
-  background: #eee!important;
+.rescue-list-container {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  position: relative;
+  padding-bottom: 15px;
+}
+
+.section-header i {
+  font-size: 24px;
+  margin-right: 10px;
+  color: #3F5EFB;
+}
+
+.section-header span {
+  font-size: 20px;
+  font-weight: 600;
+  color: #3F5EFB;
+}
+
+.section-divider {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 80px;
+  height: 3px;
+  background: linear-gradient(to right, #3F5EFB, #67C23A);
+  border-radius: 3px;
+}
+
+.rescue-table {
+  margin-bottom: 20px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.rescue-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.rescue-name {
+  font-weight: 600;
+  color: #303133;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.avatar-uploader {
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  width: 178px;
+  height: 178px;
+}
+
+.avatar-uploader:hover {
+  border-color: #409EFF;
+}
+
+.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 178px;
+  height: 178px;
+  line-height: 178px;
+  text-align: center;
+}
+
+.avatar {
+  width: 178px;
+  height: 178px;
+  display: block;
+  object-fit: cover;
+}
+
+.upload-tip {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 5px;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 </style>

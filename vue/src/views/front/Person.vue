@@ -3,11 +3,11 @@
     <el-form label-width="80px" size="small">
       <el-upload
           class="avatar-uploader"
-          action="http://localhost:9090/file/upload"
+          :action="request.defaults.baseURL + '/file/upload'"
           :show-file-list="false"
           :on-success="handleAvatarSuccess"
       >
-        <img v-if="form.avatarUrl" :src="form.avatarUrl" class="avatar">
+        <img v-if="form.avatarUrl" :src="fixImageUrl(form.avatarUrl)" alt="" style="width: 100px; height: 100px; border-radius: 50%">
         <i v-else class="el-icon-plus avatar-uploader-icon"></i>
       </el-upload>
 
@@ -42,6 +42,8 @@
 </template>
 
 <script>
+import { fixImageUrl } from '@/utils/request'
+
 export default {
   name: "Person",
   data() {
@@ -51,12 +53,10 @@ export default {
     }
   },
   created() {
-    this.getUser().then(res => {
-      console.log(res)
-      this.form = res
-    })
+    this.getUser()
   },
   methods: {
+    fixImageUrl,
     async getUser() {
       return (await this.request.get("/user/username/" + this.user.username)).data
     },

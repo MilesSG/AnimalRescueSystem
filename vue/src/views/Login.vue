@@ -1,44 +1,38 @@
 <template>
   <div class="container">
-
-    <div style="width: 25%; display: flex;background-color: white;">
-
-      <div style="flex: 1;width: 50%;padding: 50px;display: flex;flex-direction: column;justify-content: center;" >
-        <div style="text-align: center; font-size: 30px; margin-bottom: 50px; color: #333 ;font-size: 30px;color: #000000" >宠 物 领 养 系 统</div>
-          <el-form :model="user" :rules="rules" ref="userForm">
-            <el-form-item prop="username">
-              <el-input size="medium" prefix-icon="el-icon-user" v-model="user.username" placeholder="请输入账号"></el-input>
-            </el-form-item>
-            <el-form-item prop="password" style="margin-bottom: 50px">
-              <el-input size="medium" prefix-icon="el-icon-lock" show-password v-model="user.password" placeholder="请输入密码"></el-input>
-            </el-form-item>
-            <el-form-item style="margin-top: 30px; display: flex;">
-              <el-button style="flex: 1;width: 100px" type="primary" size="small"  autocomplete="off" @click="login">登录</el-button>
-              <el-button style="flex: 1 ;width: 100px" type="warning" size="small"  autocomplete="off" @click="$router.push('/register')">前往注册</el-button>
-              <el-button style=" flex: 1 ;width: 100px;background-color: #67C23A;color: #ffffff" size="small" autocomplete="off" @click="handlePass">找回密码</el-button>
-            </el-form-item>
-          </el-form>
-        </div>
-
-        <el-dialog title="找回密码" :visible.sync="dialogFormVisible" width="30%" >
-          <el-form label-width="100px" size="small">
-            <el-form-item label="用户名">
-              <el-input v-model="pass.username" autocomplete="off"></el-input>
-            </el-form-item>
-            <el-form-item label="手机号">
-              <el-input v-model="pass.phone" autocomplete="off"></el-input>
-            </el-form-item>
-          </el-form>
-          <div slot="footer" class="dialog-footer">
-            <el-button @click="dialogFormVisible = false">取 消</el-button>
-            <el-button type="primary" @click="passwordBack">重置密码</el-button>
+    <div class="login-card">
+      <div class="login-content">
+        <div class="login-title">流浪动物救助平台</div>
+        <el-form :model="user" :rules="rules" ref="userForm">
+          <el-form-item prop="username">
+            <el-input size="medium" prefix-icon="el-icon-user" v-model="user.username" placeholder="请输入账号"></el-input>
+          </el-form-item>
+          <el-form-item prop="password">
+            <el-input size="medium" prefix-icon="el-icon-lock" show-password v-model="user.password" placeholder="请输入密码"></el-input>
+          </el-form-item>
+          <div class="btn-group">
+            <el-button type="primary" @click="login">登录</el-button>
+            <el-button type="warning" @click="$router.push('/register')">注册账号</el-button>
+            <el-button type="success" @click="handlePass">找回密码</el-button>
           </div>
-        </el-dialog>
+        </el-form>
+      </div>
 
-
-   </div>
-
-
+      <el-dialog title="找回密码" :visible.sync="dialogFormVisible" width="30%">
+        <el-form label-width="100px" size="small">
+          <el-form-item label="用户名">
+            <el-input v-model="pass.username" autocomplete="off"></el-input>
+          </el-form-item>
+          <el-form-item label="手机号">
+            <el-input v-model="pass.phone" autocomplete="off"></el-input>
+          </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+          <el-button @click="dialogFormVisible = false">取 消</el-button>
+          <el-button type="primary" @click="passwordBack">重置密码</el-button>
+        </div>
+      </el-dialog>
+    </div>
   </div>
 </template>
 
@@ -110,17 +104,90 @@ export default {
 .container {
   height: 100vh;
   overflow: hidden;
-  /*background-color: #dcd5b0;*/
-  background-image: url("../assets/bg2.png");
-  background-size: 100%;
+  background: linear-gradient(135deg, #3498db, #2c3e50);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #666;
 }
-.wrapper {
-  height: 100vh;
-  background-image: linear-gradient(to bottom right, #4169E1 , 	#87CEFA);
+
+.login-card {
+  width: 380px;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
   overflow: hidden;
+}
+
+.login-content {
+  padding: 40px;
+}
+
+.login-title {
+  text-align: center;
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 40px;
+  color: #2c3e50;
+  letter-spacing: 2px;
+  position: relative;
+}
+
+.login-title:after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background-color: #3498db;
+  border-radius: 3px;
+}
+
+.el-form-item {
+  margin-bottom: 25px;
+}
+
+.el-input__inner {
+  height: 45px;
+  border-radius: 4px;
+}
+
+.btn-group {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+}
+
+.btn-group .el-button {
+  flex: 1;
+  margin: 0 5px;
+  padding: 12px 0;
+  font-size: 14px;
+  border-radius: 4px;
+}
+
+.btn-group .el-button:first-child {
+  margin-left: 0;
+}
+
+.btn-group .el-button:last-child {
+  margin-right: 0;
+}
+
+.el-button--primary {
+  background-color: #3498db;
+  border-color: #3498db;
+}
+
+.el-button--warning {
+  background-color: #f39c12;
+  border-color: #f39c12;
+}
+
+.el-button--success {
+  background-color: #27ae60;
+  border-color: #27ae60;
 }
 </style>
