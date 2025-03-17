@@ -28,7 +28,7 @@ export default {
   name: 'Home',
   data() {
     return {
-      collapseBtnClass: 'el-icon-s-fold',
+      collapseBtnClass: '',
       isCollapse: false,
       sideWidth: 200,
       logoTextShow: true,
@@ -48,11 +48,11 @@ export default {
       this.isCollapse = !this.isCollapse
       if (this.isCollapse) {  // 收缩
         this.sideWidth = 64
-        this.collapseBtnClass = 'el-icon-s-unfold'
+        this.collapseBtnClass = 'el-icon-s-fold'
         this.logoTextShow = false
       } else {   // 展开
         this.sideWidth = 200
-        this.collapseBtnClass = 'el-icon-s-fold'
+        this.collapseBtnClass = 'el-icon-s-unfold'
         this.logoTextShow = true
       }
     },
